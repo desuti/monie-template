@@ -161,7 +161,36 @@ const getRates = async ({ refresh = false }) => {
 // Your code goes here! (and maybe into a service worker?)
 // =======================================================
 
+let rates;
 
-// Delay this line to only display the app when it has been initialized, eg.
-// when rates have loaded
-document.body.classList.add("loaded");
+getRates(false).then(function(value) {
+  rates = value['rates'];
+  document.body.classList.add("loaded");
+});
+
+let valueInput = $('.amount__input--travel')
+valueInput.addEventListener('blur', function() { 
+  let from = $('.currency__select.currency__select--travel');
+  let to = $('.currency__select.currency__select--home');
+  let value = valueInput.value;
+  let specificRate = convertRelative(rates, from.options[from.selectedIndex].value, to.options[to.selectedIndex].value);
+  let amountOutput = $('.amount__output--home');
+  amountOutput.innerText = specificRate * value;
+ }, false);
+
+ let refreshRatesLink = $('.refresh');
+ refreshRatesLink.addEventListener('click', function() {
+    console.log("refresh rates");
+ });
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./worker.js').then(function(registration) {
+      // Registration was successful
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    }, function(err) {
+      // registration failed :(
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+}
